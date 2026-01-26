@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html class="dark" lang="id">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Meeting Schedule Dashboard</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+        rel="stylesheet" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"]
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom Keyframe for the status pulse */
+        @keyframes subtle-pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        .status-pulse {
+            animation: subtle-pulse 2s infinite ease-in-out;
+        }
+
+        /* Hide scrollbar for clean signage look */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Glassmorphism utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body class="bg-black text-white font-display overflow-hidden min-h-screen flex flex-col">
+
+    <!-- 
+        Main Container: 
+        Removed fixed width/aspect ratio constraints for full responsiveness 
+    -->
+    <div class="relative w-full h-full flex-1 flex flex-col bg-background-dark overflow-hidden">
+
+        <!-- Header Section -->
+        <header class="flex flex-col px-6 py-6 md:px-10 md:py-8 bg-[#111a22] z-10 relative border-b border-white/5">
+            <div class="flex justify-between items-start">
+                <div class="flex flex-col">
+                    <!-- Date -->
+                    <h2 id="currentDate"
+                        class="text-[#92adc9] text-xl md:text-2xl font-medium tracking-wide uppercase mb-1">
+                        MEMUAT TANGGAL...
+                    </h2>
+                    <!-- Time with Gold Accent -->
+                    <h1 id="currentTime"
+                        class="text-[#fbbf24] text-6xl md:text-8xl font-black tracking-tighter leading-none mb-2 md:mb-4">
+                        --:--
+                    </h1>
+                </div>
+                <!-- Weather/Icon placeholder (Optional) -->
+                <!-- <span class="material-symbols-outlined text-[#92adc9] text-5xl md:text-6xl">sunny</span> -->
+            </div>
+
+            <div class="h-px w-full bg-gradient-to-r from-[#137fec] to-transparent my-4 opacity-50"></div>
+
+            <div class="flex items-center justify-between">
+                <h3 class="text-white text-2xl md:text-4xl font-bold tracking-tight">Jadwal Ruang Rapat</h3>
+
+                <!-- Status Badge (Dynamic) -->
+                <span id="statusBadge"
+                    class="hidden px-4 py-1 rounded-full bg-[#192633] border border-white/10 text-sm font-bold text-[#137fec] flex items-center gap-2 transition-all duration-300">
+                    <span class="relative flex h-3 w-3">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                    </span>
+                    <span class="status-text">LIVE</span>
+                </span>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-hidden relative p-4 md:p-8">
+
+            <!-- 1. LOADING STATE -->
+            <div id="loadingState"
+                class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background-dark/80 backdrop-blur-sm">
+                <div class="w-16 h-16 border-4 border-[#137fec] border-t-transparent rounded-full animate-spin mb-4">
+                </div>
+                <p class="text-[#92adc9] text-xl animate-pulse">Memuat Jadwal Rapat...</p>
+            </div>
+
+            <!-- 2. ERROR STATE (Auto-Retry) -->
+            <div id="errorState"
+                class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md p-8 text-center">
+                <span class="material-symbols-outlined text-red-500 text-7xl mb-4">wifi_off</span>
+                <h2 class="text-3xl font-bold text-white mb-2">Gagal Memuat Data</h2>
+                <p id="errorMessage" class="text-gray-400 text-lg mb-8 max-w-lg">Terjadi kesalahan koneksi.</p>
+
+                <!-- Retry Countdown -->
+                <div class="flex flex-col items-center gap-2">
+                    <p class="text-[#137fec] font-mono text-lg">Mencoba lagi dalam <span id="retryCountdown"
+                            class="font-bold text-2xl">10</span> detik...</p>
+                    <div class="w-64 h-1 bg-white/10 rounded-full overflow-hidden mt-2">
+                        <div id="retryProgressBar"
+                            class="h-full bg-[#137fec] transition-all duration-1000 ease-linear w-full"></div>
+                    </div>
+                    <button onclick="fetchMeetingData()"
+                        class="mt-6 px-6 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors border border-white/10">
+                        Coba Sekarang
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. EMPTY STATE (Idle) - Slideshow Carousel -->
+            <div id="emptyState" class="hidden h-full flex flex-col items-center justify-center text-center p-4 md:p-8">
+
+                <!-- Swiper Slideshow Container -->
+                <div class="swiper mySwiper w-full h-full">
+                    <div class="swiper-wrapper" id="slideContent">
+                        <!-- Slides injected by JS as swiper-slide -->
+                    </div>
+                    <div class="swiper-pagination"></div>
+                </div>
+
+                <style>
+                    /* Custom Swiper Pagination */
+                    .swiper-pagination-bullet {
+                        width: 12px;
+                        height: 12px;
+                        background: rgba(255, 255, 255, 0.2);
+                        opacity: 1;
+                        transition: all 0.3s;
+                    }
+
+                    .swiper-pagination-bullet-active {
+                        background: #137fec;
+                        transform: scale(1.2);
+                    }
+                </style>
+            </div>
+
+            <!-- ROOM SHOWCASE OVERLAY -->
+            <div id="showcaseContainer"
+                class="hidden absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0f172a]/95 p-4">
+                <!-- Main Image Container -->
+                <div class="relative w-full h-full flex items-center justify-center">
+                    <img id="showcaseImage" src="" alt="Room"
+                        class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl transition-all duration-500">
+
+                    <!-- Floating Text Overlay (Bottom) -->
+                    <div class="absolute bottom-8 left-0 right-0 flex justify-center pointer-events-none">
+                        <div
+                            class="bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center max-w-3xl mx-4 shadow-xl">
+                            <h2 class="text-sm text-[#92adc9] font-bold tracking-widest uppercase mb-1"
+                                id="showcaseTitle">FASILITAS KAMI</h2>
+                            <div class="flex items-center justify-center gap-4">
+                                <h1 class="text-2xl md:text-4xl font-black text-white" id="showcaseRoomName">Ruang Rapat
+                                </h1>
+                                <div class="hidden md:flex h-8 w-px bg-white/20"></div>
+                                <div
+                                    class="inline-flex items-center gap-2 px-4 py-1 bg-[#137fec]/20 border border-[#137fec]/50 rounded-full text-[#137fec] font-bold">
+                                    <span class="material-symbols-outlined text-lg">groups</span>
+                                    <span id="showcaseCapacity">Kapasitas</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. MEETINGS GRID CONTENT -->
+            <!-- 
+                Responsive Grid:
+                - Default (Mobile/Portrait): 1 Column
+                - md (Landscape Screen): 2 Columns 
+                - lg/xl (Wide Screen): 3 Columns 
+            -->
+            <div id="meetingContainer"
+                class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 h-full content-start">
+                <!-- Javascript will inject cards here -->
+            </div>
+
+            <!-- Pagination Indicators (Bottom Center) -->
+            <div id="paginationControls"
+                class="absolute bottom-8 left-0 right-0 flex justify-center gap-2 z-10 pointer-events-none opacity-0 transition-opacity duration-300">
+                <!-- Dots will be injected here -->
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="w-full py-3 bg-[#111a22] border-t border-white/5 z-20">
+            <div class="px-6 text-center">
+                <p class="text-[#92adc9]/60 text-xs md:text-sm font-medium tracking-wide uppercase">
+                    &copy; Subbagian Kepegawaian, Umum, dan Hubungan Masyarakat
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Configuration Script -->
+    <script src="config.js?v=2"></script>
+    <script src="app.js?v=6"></script>
+</body>
+
+</html>

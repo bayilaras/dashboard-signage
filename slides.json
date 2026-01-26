@@ -1,0 +1,42 @@
+{
+  "slides": [
+    {
+      "id": "slide-1",
+      "type": "welcome",
+      "title": "Selamat Datang",
+      "subtitle": "Direktorat Jenderal Pengadaan Tanah dan Pengembangan Pertanahan",
+      "tagline": "Pengadaan Tanah Sukses, Pembangunan Berjalan",
+      "logo": "assets/logo-djptpp.png",
+      "enabled": true,
+      "order": 1
+    },
+    {
+      "id": "slide-2",
+      "type": "image",
+      "title": "Pengajian Bulanan",
+      "description": "Pengajian Bulanan & Ramah Tamah Keluarga Besar Kementerian ATR/BPN",
+      "image": "assets/slide-pengajian.jpg",
+      "enabled": true,
+      "order": 2
+    },
+    {
+      "id": "slide-3",
+      "type": "image",
+      "title": "Presensi E-Office",
+      "description": "Jangan Lupa Presensi Datang dan Pulang melalui E-Office",
+      "image": "assets/slide-presensi.jpg",
+      "enabled": true,
+      "order": 3
+    },
+    {
+      "id": "slide-4",
+      "type": "announcement",
+      "title": "Ruang Rapat Tersedia",
+      "content": "Silakan booking ruang rapat melalui sistem reservasi online",
+      "icon": "calendar",
+      "enabled": true,
+      "order": 4
+    }
+  ],
+  "lastUpdated": "2026-01-22T20:00:00+07:00"
+}
