@@ -768,7 +768,7 @@ function renderSlideContent(slide) {
                          alt="${slide.title}" 
                          class="w-full h-full object-contain max-h-[85vh] rounded-xl shadow-2xl"
                          onload="console.log('[Slideshow] Image loaded')"
-                         onerror="this.src='https://via.placeholder.com/800x600?text=Gagal+Memuat+Gambar'">
+                         onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center bg-gray-800 text-white\'>Gagal Memuat Gambar</div>'">
                     
                     ${slide.title ? `
                     <div class="absolute bottom-8 left-0 right-0 text-center pointer-events-none">
@@ -806,7 +806,7 @@ function renderSlideContent(slide) {
                 // RENDER YOUTUBE Embed
                 return `
                 <div class="w-full h-full flex items-center justify-center bg-black overflow-hidden relative group">
-                    <iframe src="https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${youtubeId}" 
+                    <iframe src="https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${youtubeId}&origin=${window.location.origin}" 
                             class="w-full h-full absolute inset-0 z-10" 
                             style="border: none;"
                             allow="autoplay; encrypted-media; fullscreen" 
