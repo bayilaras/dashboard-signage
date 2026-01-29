@@ -84,8 +84,8 @@ const CONFIG = {
 
   // Pengaturan refresh
   refresh: {
-    // Interval refresh data dalam milidetik (120000 = 2 menit)
-    interval: 120000, // Optimized for digital signage - frequent updates
+    // Interval refresh data dalam milidetik (300000 = 5 menit)
+    interval: 300000, // Optimized for digital signage - frequent updates
 
     // Interval update waktu current dalam milidetik (1000 = 1 detik)
     clockInterval: 1000
@@ -106,38 +106,22 @@ const CONFIG = {
     url: 'https://bit.ly/booking_ruangrapatL2',
     displayUrl: 'bit.ly/booking_ruangrapatL2',
     qrApiBase: 'https://api.qrserver.com/v1/create-qr-code/',
-    qrSize: '300x300'
+    qrSize: '400x400'
   },
 
   // Konfigurasi Wayfinding (Arah Ruangan)
   wayfinding: {
     'Ruang Rapat L2A': {
-      direction: 'left',
-      label: 'KIRI',
       detail: 'Masuk Pintu Sekretariat (Samping Ruangan Dirjen)',
-      icon: 'west', // Material Icon name
-      color: 'text-yellow-400'
     },
     'Ruang Rapat L2B': {
-      direction: 'right',
-      label: 'KANAN',
       detail: 'Masuk Pintu Direktorat Teknis (Samping Musholla)',
-      icon: 'east',
-      color: 'text-yellow-400'
     },
     'Ruang Rapat L2C': {
-      direction: 'left',
-      label: 'KIRI',
       detail: 'Masuk Pintu Sekretariat (Dekat Pintu Masuk Sekretariat)',
-      icon: 'west',
-      color: 'text-yellow-400'
     },
     'Co Working Space': {
-      direction: 'left',
-      label: 'KIRI',
       detail: 'Masuk Pintu Sekretariat',
-      icon: 'west',
-      color: 'text-yellow-400'
     }
   },
 
@@ -147,8 +131,8 @@ const CONFIG = {
     // Aktifkan slideshow
     enabled: true,
 
-    // Interval pergantian slide dalam milidetik (8000 = 8 detik)
-    interval: 8000,
+    // Interval pergantian slide dalam milidetik (13000 = 13 detik)
+    interval: 13000,
 
     // Mode idle: slideshow fullscreen ketika tidak ada rapat
     idleMode: true,
@@ -164,52 +148,18 @@ const CONFIG = {
 
     // FALLBACK SLIDES (digunakan jika slides.json gagal dimuat - misal CORS error)
     // Edit data ini jika ingin menambah slide tanpa edit slides.json
-    fallbackSlides: [
-      {
-        id: 'slide-1',
-        type: 'welcome',
-        title: 'Selamat Datang',
-        subtitle: 'Direktorat Jenderal Pengadaan Tanah dan Pengembangan Pertanahan',
-        tagline: 'Pengadaan Tanah Sukses, Pembangunan Berjalan',
-        logo: 'assets/logo-djptpp.png',
-        enabled: true,
-        order: 1
-      },
-      {
-        id: 'slide-2',
-        type: 'announcement',
-        title: 'Presensi E-Office',
-        content: 'Jangan Lupa Presensi Datang dan Pulang melalui E-Office',
-        icon: 'fingerprint',
-        enabled: true,
-        order: 2
-      }
-    ]
+
   },
 
-  // SHOWCASE INTERVAL (Fasilitas Ruangan)
+  // SHOWCASE INTERVAL (Gambar/Slide dari Google Drive)
   // Muncul di sela-sela pergantian halaman jadwal
   roomShowcase: {
     enabled: true,
-    interval: 8000, // Durasi per foto (8 detik)
-    title: 'Fasilitas Ruang Rapat',
-    rooms: [
-      {
-        name: 'Ruang Rapat 201 (L2A)',
-        image: 'assets/Ruang rapat 201.JPG',
-        capacity: '20 Orang'
-      },
-      {
-        name: 'Ruang Rapat 202 (L2B)',
-        image: 'assets/Ruang rapat 202.jpg',
-        capacity: '30 Orang'
-      },
-      {
-        name: 'Ruang Rapat 203 (L2C)',
-        image: 'assets/Ruang rapat 203.JPG',
-        capacity: '15 Orang'
-      }
-    ]
+    interval: 13000, // Durasi per slide (13 detik)
+    // Gunakan slides dari Google Drive (sheet "Slides" di Spreadsheet)
+    useGoogleDriveSlides: true,
+    // Judul default jika slide tidak memiliki title
+    defaultTitle: 'Informasi'
   },
 
   // Debug mode (tampilkan console logs)
