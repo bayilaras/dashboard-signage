@@ -378,42 +378,71 @@ function showRoomShowcase() {
     // 1. Pause Pagination
     if (state.pagination.timer) clearInterval(state.pagination.timer);
 
-    // 2. Hide Grid
-    const gridContainer = document.getElementById('meetingsContainer'); // Careful! ID check
-    // Actually the grid is embedded in content state. We can just overlay the Showcase Div.
-
     const showcaseContainer = document.getElementById('showcaseContainer');
     if (!showcaseContainer) return;
 
-    // 3. Prepare Content
-    const rooms = CONFIG.roomShowcase.rooms;
-    const room = rooms[showcaseIndex];
+    // 2. Get slides from state (loaded from Google Drive/Slides sheet)
+    // If slides not loaded yet, load them first
+    if (state.slideshow.slides.length === 0) {
+        loadSlides().then(() => {
+            displayShowcaseSlide(showcaseContainer);
+        });
+    } else {
+        displayShowcaseSlide(showcaseContainer);
+    }
+}
+
+// Helper function to display a single slide in showcase mode
+function displayShowcaseSlide(showcaseContainer) {
+    const slides = state.slideshow.slides.filter(s => s.type === 'image' || s.image);
+
+    if (slides.length === 0) {
+        console.log('[Showcase] No image slides available, resuming pagination');
+        resumeAfterShowcase();
+        return;
+    }
+
+    // Get current slide
+    const slide = slides[showcaseIndex % slides.length];
 
     // Update Elements
-    document.getElementById('showcaseImage').src = room.image;
-    document.getElementById('showcaseRoomName').textContent = room.name;
-    document.getElementById('showcaseCapacity').textContent = room.capacity || 'Fasilitas Rapat';
+    const showcaseImage = document.getElementById('showcaseImage');
 
-    // 4. Show Showcase
+    // HIDE ALL TEXT OVERLAY ELEMENTS
+    // Mencari elemen overlay teks di dalam showcaseContainer dan menyembunyikannya
+    const textOverlay = showcaseContainer.querySelector('.absolute.bottom-8');
+    if (textOverlay) {
+        textOverlay.classList.add('hidden');
+    }
+
+    if (showcaseImage) showcaseImage.src = slide.image || '';
+
+    // Show Showcase
     showcaseContainer.classList.remove('hidden');
 
     // Cycle index for next time
-    showcaseIndex = (showcaseIndex + 1) % rooms.length;
+    showcaseIndex = (showcaseIndex + 1) % slides.length;
 
-    // 5. Set Timer to Resume
+    // Set Timer to Resume
     setTimeout(() => {
-        // Hide Showcase
+        resumeAfterShowcase();
+    }, CONFIG.roomShowcase?.interval || 8000);
+}
+
+// Helper function to resume pagination after showcase
+function resumeAfterShowcase() {
+    const showcaseContainer = document.getElementById('showcaseContainer');
+    if (showcaseContainer) {
         showcaseContainer.classList.add('hidden');
+    }
 
-        // Go to Page 0
-        state.pagination.currentPage = 0;
-        renderMeetingPage();
-        renderPaginationDots();
+    // Go to Page 0
+    state.pagination.currentPage = 0;
+    renderMeetingPage();
+    renderPaginationDots();
 
-        // Resume Timer
-        startPaginationTimer();
-
-    }, CONFIG.roomShowcase.interval || 8000);
+    // Resume Timer
+    startPaginationTimer();
 }
 
 
@@ -524,16 +553,7 @@ function createMeetingCard(meeting) {
         })()}
                 </div>
 
-                <!-- Wayfinding Badge (Arrow) -->
-                ${(() => {
-            const wf = getWayfindingConfig(meeting.ruangan);
-            if (!wf) return '';
-            return `
-                    <div class="flex items-center gap-1 px-2 py-1 rounded bg-white/5 border border-white/10 shrink-0">
-                        <span class="text-xs font-bold ${wf.color} uppercase">${wf.label}</span>
-                        <span class="material-symbols-outlined ${wf.color} text-lg">${wf.icon}</span>
-                    </div>`;
-        })()}
+                <!-- Wayfinding Badge Removed -->
             </div>
 
             <!-- Unit/Satker -->
