@@ -237,18 +237,25 @@ function getHijriDate(date) {
     };
 
     try {
+        // Apply day adjustment for Indonesia (Umm al-Qura vs Indonesia offset)
+        const adjustDays = CONFIG?.dateFormat?.hijriDayAdjust || 0;
+        const adjustedDate = new Date(date);
+        if (adjustDays !== 0) {
+            adjustedDate.setDate(adjustedDate.getDate() + adjustDays);
+        }
+
         // Use Intl.DateTimeFormat with islamic-umalqura calendar
         const hijriDay = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
             day: 'numeric'
-        }).format(date);
+        }).format(adjustedDate);
 
         const hijriMonth = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
             month: 'long'
-        }).format(date);
+        }).format(adjustedDate);
 
         const hijriYear = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
             year: 'numeric'
-        }).format(date);
+        }).format(adjustedDate);
 
         // Clean year (remove " AH" suffix if present)
         const yearClean = hijriYear.replace(/\s*AH$/i, '').trim();
@@ -489,18 +496,29 @@ function displayShowcaseSlide(showcaseContainer) {
     // Get current slide
     const slide = slides[showcaseIndex % slides.length];
 
-    // Update fullscreen image
+    // Update fullscreen image with fade transition
     const showcaseImage = document.getElementById('showcaseImage');
     if (showcaseImage) {
         showcaseImage.setAttribute('referrerpolicy', 'no-referrer');
-        showcaseImage.src = slide.image || '';
-    }
+        // Fade out first, then swap image, then fade in
+        showcaseContainer.style.transition = 'opacity 0.5s ease-in-out';
+        showcaseContainer.style.opacity = '0';
 
-    // Show Showcase + floating overlays
-    showcaseContainer.classList.remove('hidden');
-    document.getElementById('floatingClock')?.classList.remove('hidden');
-    document.getElementById('floatingLogo')?.classList.remove('hidden');
-    document.getElementById('floatingTicker')?.classList.remove('hidden');
+        setTimeout(() => {
+            showcaseImage.src = slide.image || '';
+
+            // Show Showcase + floating overlays
+            showcaseContainer.classList.remove('hidden');
+            document.getElementById('floatingClock')?.classList.remove('hidden');
+            document.getElementById('floatingLogo')?.classList.remove('hidden');
+            document.getElementById('floatingTicker')?.classList.remove('hidden');
+
+            // Fade in
+            requestAnimationFrame(() => {
+                showcaseContainer.style.opacity = '1';
+            });
+        }, showcaseContainer.classList.contains('hidden') ? 0 : 500);
+    }
 
     // Cycle index for next time
     showcaseIndex = (showcaseIndex + 1) % slides.length;
@@ -515,20 +533,34 @@ function displayShowcaseSlide(showcaseContainer) {
 function resumeAfterShowcase() {
     const showcaseContainer = document.getElementById('showcaseContainer');
     if (showcaseContainer) {
-        showcaseContainer.classList.add('hidden');
+        // Fade out showcase before hiding
+        showcaseContainer.style.transition = 'opacity 0.5s ease-in-out';
+        showcaseContainer.style.opacity = '0';
+
+        setTimeout(() => {
+            showcaseContainer.classList.add('hidden');
+            showcaseContainer.style.opacity = '1'; // Reset for next use
+
+            // Hide floating overlays (header clock visible for meetings)
+            document.getElementById('floatingClock')?.classList.add('hidden');
+            document.getElementById('floatingLogo')?.classList.add('hidden');
+            document.getElementById('floatingTicker')?.classList.add('hidden');
+
+            // Go to Page 0
+            state.pagination.currentPage = 0;
+            renderMeetingPage();
+            renderPaginationDots();
+
+            // Resume Timer
+            startPaginationTimer();
+        }, 500);
+    } else {
+        // Fallback if no container
+        state.pagination.currentPage = 0;
+        renderMeetingPage();
+        renderPaginationDots();
+        startPaginationTimer();
     }
-    // Hide floating overlays (header clock visible for meetings)
-    document.getElementById('floatingClock')?.classList.add('hidden');
-    document.getElementById('floatingLogo')?.classList.add('hidden');
-    document.getElementById('floatingTicker')?.classList.add('hidden');
-
-    // Go to Page 0
-    state.pagination.currentPage = 0;
-    renderMeetingPage();
-    renderPaginationDots();
-
-    // Resume Timer
-    startPaginationTimer();
 }
 
 
@@ -820,6 +852,12 @@ async function loadSlides() {
         if (data.success && data.slides && data.slides.length > 0) {
             slides = data.slides;
             console.log(`[Slideshow] Loaded ${slides.length} slides from Google Sheet`);
+            // Cache slides to localStorage for offline fallback
+            try {
+                localStorage.setItem('cachedSlides', JSON.stringify(slides));
+                localStorage.setItem('cachedSlidesTime', Date.now().toString());
+                console.log('[Slideshow] Slides cached to localStorage');
+            } catch (e) { /* localStorage full or unavailable */ }
         } else {
             console.log('[Slideshow] No slides in Google Sheet, trying fallback...');
             throw new Error('No slides from API');
@@ -846,6 +884,17 @@ async function loadSlides() {
                     .sort((a, b) => a.order - b.order);
                 console.log(`[Slideshow] Using ${slides.length} fallback slides from config.js`);
             }
+        }
+
+        // Try 4: Offline fallback — use cached slides from localStorage
+        if (slides.length === 0) {
+            try {
+                const cached = localStorage.getItem('cachedSlides');
+                if (cached) {
+                    slides = JSON.parse(cached);
+                    console.log(`[Slideshow] Using ${slides.length} cached slides (offline fallback)`);
+                }
+            } catch (e) { /* parse error */ }
         }
     }
 

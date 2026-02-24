@@ -51,7 +51,13 @@ const CONFIG = {
     timePattern: 'HH:mm',
 
     // Zona waktu (WIB = Asia/Jakarta)
-    timezone: 'Asia/Jakarta'
+    timezone: 'Asia/Jakarta',
+
+    // Koreksi hari kalender Hijriah untuk Indonesia
+    // Kalender Umm al-Qura (Saudi) kadang berbeda 1 hari dari Indonesia
+    // Nilai -1 berarti tanggal Hijriah mundur 1 hari dari Umm al-Qura
+    // Sesuaikan jika perlu (0 = tanpa koreksi)
+    hijriDayAdjust: -1
   },
 
   // Pengaturan tampilan
