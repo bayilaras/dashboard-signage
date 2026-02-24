@@ -9,6 +9,7 @@ const state = {
     isLoading: false,
     error: null,
     refreshTimer: null,
+    lastFetchTime: Date.now(),
     clockTimer: null,
     // Pagination State
     pagination: {
@@ -136,6 +137,7 @@ function showState(stateName) {
 
     const pag = document.getElementById('paginationControls');
     const badge = document.getElementById('statusBadge');
+    const floatingClock = document.getElementById('floatingClock');
 
     // Default: Hide all
     Object.values(states).forEach(el => el?.classList.add('hidden'));
@@ -145,13 +147,19 @@ function showState(stateName) {
         states[stateName].classList.remove('hidden');
     }
 
+    // Floating clock: only visible during slideshow (empty state)
+    if (stateName === 'empty') {
+        floatingClock?.classList.remove('hidden');
+    } else {
+        floatingClock?.classList.add('hidden');
+    }
+
     // Context-specific visibility
     if (stateName === 'content') {
         pag?.classList.remove('opacity-0');
         badge?.classList.remove('hidden');
     } else {
         pag?.classList.add('opacity-0');
-        // Keep badge visible only if we have stale data? No, hide it for clean error/empty states
         badge?.classList.add('hidden');
     }
 }
@@ -183,11 +191,17 @@ function updateClock() {
         year: 'numeric'
     });
 
+    // Update header clock
     const timeEl = document.getElementById('currentTime');
     const dateEl = document.getElementById('currentDate');
-
     if (timeEl) timeEl.textContent = timeStr;
     if (dateEl) dateEl.textContent = dateStr;
+
+    // Update floating clock overlay
+    const floatingTime = document.getElementById('floatingTime');
+    const floatingDate = document.getElementById('floatingDate');
+    if (floatingTime) floatingTime.textContent = timeStr;
+    if (floatingDate) floatingDate.textContent = dateStr;
 }
 
 // ============================================
@@ -230,6 +244,7 @@ async function fetchMeetingData() {
         retryManager.reset();
         state.meetings = meetings;
         state.error = null;
+        state.lastFetchTime = Date.now();
 
         renderApp(meetings);
 
@@ -405,20 +420,17 @@ function displayShowcaseSlide(showcaseContainer) {
     // Get current slide
     const slide = slides[showcaseIndex % slides.length];
 
-    // Update Elements
+    // Update fullscreen image
     const showcaseImage = document.getElementById('showcaseImage');
-
-    // HIDE ALL TEXT OVERLAY ELEMENTS
-    // Mencari elemen overlay teks di dalam showcaseContainer dan menyembunyikannya
-    const textOverlay = showcaseContainer.querySelector('.absolute.bottom-8');
-    if (textOverlay) {
-        textOverlay.classList.add('hidden');
+    if (showcaseImage) {
+        showcaseImage.setAttribute('referrerpolicy', 'no-referrer');
+        showcaseImage.src = slide.image || '';
     }
 
-    if (showcaseImage) showcaseImage.src = slide.image || '';
-
-    // Show Showcase
+    // Show Showcase + floating clock
     showcaseContainer.classList.remove('hidden');
+    const floatingClock = document.getElementById('floatingClock');
+    if (floatingClock) floatingClock.classList.remove('hidden');
 
     // Cycle index for next time
     showcaseIndex = (showcaseIndex + 1) % slides.length;
@@ -435,6 +447,9 @@ function resumeAfterShowcase() {
     if (showcaseContainer) {
         showcaseContainer.classList.add('hidden');
     }
+    // Hide floating clock (header clock is visible for meetings)
+    const floatingClock = document.getElementById('floatingClock');
+    if (floatingClock) floatingClock.classList.add('hidden');
 
     // Go to Page 0
     state.pagination.currentPage = 0;
@@ -603,15 +618,56 @@ function startAutoRefresh() {
 
 function setupConnectionMonitoring() {
     window.addEventListener('online', () => {
-        console.log('Online detected');
-        // Optionally auto-retry immediately
-        // retryManager.reset(); 
-        // fetchMeetingData(); 
-        // User might prefer the countdown to finish naturally or click "Coba Sekarang"
+        console.log('[Monitor] Online detected - restarting refresh');
+        retryManager.reset();
+        fetchMeetingData();
+        startAutoRefresh();
     });
     window.addEventListener('offline', () => {
-        console.log('Offline detected');
+        console.log('[Monitor] Offline detected');
     });
+
+    // === FIX: Restart timers after fullscreen / visibility changes ===
+
+    // 1. Page Visibility API - fires when tab/page becomes hidden/visible
+    //    F11 can briefly trigger this in some browsers
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            console.log('[Monitor] Page visible again - restarting auto-refresh');
+            startAutoRefresh();
+            // If data is stale (last fetch was too long ago), fetch immediately
+            if (Date.now() - state.lastFetchTime > CONFIG.refresh.interval) {
+                console.log('[Monitor] Data is stale, fetching now...');
+                fetchMeetingData();
+            }
+        }
+    });
+
+    // 2. Fullscreen change event (covers both F11 and Fullscreen API)
+    document.addEventListener('fullscreenchange', () => {
+        console.log('[Monitor] Fullscreen changed - restarting auto-refresh');
+        startAutoRefresh();
+    });
+
+    // 3. Resize event - F11 always fires a resize
+    let resizeDebounce = null;
+    window.addEventListener('resize', () => {
+        if (resizeDebounce) clearTimeout(resizeDebounce);
+        resizeDebounce = setTimeout(() => {
+            console.log('[Monitor] Window resized - ensuring auto-refresh is running');
+            startAutoRefresh();
+        }, 500);
+    });
+
+    // 4. Watchdog timer - safety net that checks every 60s if refresh is overdue
+    setInterval(() => {
+        const elapsed = Date.now() - state.lastFetchTime;
+        if (elapsed > CONFIG.refresh.interval * 1.5) {
+            console.warn(`[Watchdog] Last fetch was ${Math.round(elapsed / 1000)}s ago (limit: ${CONFIG.refresh.interval / 1000}s). Forcing refresh...`);
+            startAutoRefresh();
+            fetchMeetingData();
+        }
+    }, 60000);
 }
 
 function setupAutoReload() {
@@ -740,7 +796,7 @@ function initSwiper() {
 
     // Render slides first
     container.innerHTML = state.slideshow.slides.map(slide => `
-        <div class="swiper-slide w-full h-full flex items-center justify-center bg-transparent">
+        <div class="swiper-slide w-full h-full flex items-center justify-center bg-black">
             ${renderSlideContent(slide)}
         </div>
     `).join('');
@@ -749,8 +805,8 @@ function initSwiper() {
 
     // Initialize Swiper
     swiperInstance = new Swiper(".mySwiper", {
-        spaceBetween: 30,
-        effect: "fade", // or 'coverflow'
+        spaceBetween: 0,
+        effect: "fade",
         fadeEffect: {
             crossFade: true
         },
@@ -763,7 +819,7 @@ function initSwiper() {
             el: ".swiper-pagination",
             clickable: true,
         },
-        loop: true, // Infinite loop
+        loop: true,
     });
 }
 
@@ -781,18 +837,19 @@ function renderSlideContent(slide) {
             `;
 
         case 'image':
-            console.log('[Slideshow] Rendering Image w/ Layout V3 (Responsive Fit):', slide.image);
+            console.log('[Slideshow] Rendering Fullscreen Image:', slide.image);
             return `
-                <div class="w-full h-full flex items-center justify-center bg-black/50 p-4">
+                <div class="w-full h-full relative bg-black">
                     <img src="${slide.image}" 
-                         alt="${slide.title}" 
-                         class="w-full h-full object-contain max-h-[85vh] rounded-xl shadow-2xl"
-                         onload="console.log('[Slideshow] Image loaded')"
-                         onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center bg-gray-800 text-white\'>Gagal Memuat Gambar</div>'">
+                         alt="${slide.title || ''}" 
+                         class="w-full h-full object-cover"
+                         referrerpolicy="no-referrer"
+                         onload="console.log('[Slideshow] Image loaded successfully:', this.src)"
+                         onerror="console.error('[Slideshow] Image FAILED:', this.src); this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center bg-gray-900 text-white text-xl\'>Gagal Memuat Gambar</div>'">
                     
                     ${slide.title ? `
-                    <div class="absolute bottom-8 left-0 right-0 text-center pointer-events-none">
-                        <span class="inline-block bg-black/60 backdrop-blur-md text-white px-6 py-2 rounded-full text-xl md:text-2xl font-bold shadow-lg border border-white/10">
+                    <div class="absolute bottom-6 left-0 right-0 text-center pointer-events-none">
+                        <span class="inline-block bg-black/50 backdrop-blur-md text-white px-6 py-2 rounded-full text-lg md:text-xl font-semibold shadow-lg">
                             ${slide.title}
                         </span>
                     </div>

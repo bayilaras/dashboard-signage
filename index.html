@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
+    <meta name="referrer" content="no-referrer" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Meeting Schedule Dashboard</title>
 
@@ -71,6 +72,29 @@
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Swiper fullscreen fix - force height propagation */
+        #emptyState {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 50;
+        }
+
+        #emptyState .swiper,
+        #emptyState .swiper-wrapper,
+        #emptyState .swiper-slide {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        #emptyState .swiper-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -154,7 +178,8 @@
             </div>
 
             <!-- 3. EMPTY STATE (Idle) - Slideshow Carousel -->
-            <div id="emptyState" class="hidden h-full flex flex-col items-center justify-center text-center p-4 md:p-8">
+            <div id="emptyState"
+                class="hidden absolute inset-0 h-full w-full flex flex-col items-center justify-center text-center">
 
                 <!-- Swiper Slideshow Container -->
                 <div class="swiper mySwiper w-full h-full">
@@ -182,32 +207,10 @@
             </div>
 
             <!-- ROOM SHOWCASE OVERLAY -->
-            <div id="showcaseContainer"
-                class="hidden absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0f172a]/95 p-4">
-                <!-- Main Image Container -->
-                <div class="relative w-full h-full flex items-center justify-center">
-                    <img id="showcaseImage" src="" alt="Room"
-                        class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl transition-all duration-500">
-
-                    <!-- Floating Text Overlay (Bottom) -->
-                    <div class="absolute bottom-8 left-0 right-0 flex justify-center pointer-events-none">
-                        <div
-                            class="bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center max-w-3xl mx-4 shadow-xl">
-                            <h2 class="text-sm text-[#92adc9] font-bold tracking-widest uppercase mb-1"
-                                id="showcaseTitle">FASILITAS KAMI</h2>
-                            <div class="flex items-center justify-center gap-4">
-                                <h1 class="text-2xl md:text-4xl font-black text-white" id="showcaseRoomName">Ruang Rapat
-                                </h1>
-                                <div class="hidden md:flex h-8 w-px bg-white/20"></div>
-                                <div
-                                    class="inline-flex items-center gap-2 px-4 py-1 bg-[#137fec]/20 border border-[#137fec]/50 rounded-full text-[#137fec] font-bold">
-                                    <span class="material-symbols-outlined text-lg">groups</span>
-                                    <span id="showcaseCapacity">Kapasitas</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div id="showcaseContainer" class="hidden absolute inset-0 z-20 flex items-center justify-center bg-black">
+                <!-- Fullscreen Image -->
+                <img id="showcaseImage" src="" alt="Room" class="w-full h-full object-cover transition-all duration-500"
+                    referrerpolicy="no-referrer">
             </div>
 
             <!-- 4. MEETINGS GRID CONTENT -->
@@ -240,9 +243,115 @@
         </footer>
     </div>
 
+    <!-- ============================================ -->
+    <!-- FLOATING CLOCK OVERLAY (Always on top)       -->
+    <!-- ============================================ -->
+    <div id="floatingClock" class="floating-clock hidden">
+        <!-- Glass Container -->
+        <div class="floating-clock-inner">
+            <!-- Time -->
+            <div class="floating-clock-time" id="floatingTime">--:--</div>
+            <!-- Divider -->
+            <div class="floating-clock-divider"></div>
+            <!-- Date -->
+            <div class="floating-clock-date" id="floatingDate">Memuat...</div>
+        </div>
+    </div>
+
+    <style>
+        /* ============================================ */
+        /* FLOATING CLOCK - Premium Digital Signage     */
+        /* ============================================ */
+        .floating-clock {
+            position: fixed;
+            bottom: 32px;
+            left: 32px;
+            z-index: 60;
+            pointer-events: none;
+            animation: floatClockIn 0.8s ease-out both;
+            animation-delay: 1s;
+        }
+
+        .floating-clock-inner {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 60px rgba(19, 127, 236, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .floating-clock-time {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #fbbf24;
+            letter-spacing: -0.05em;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 30px rgba(251, 191, 36, 0.2);
+        }
+
+        .floating-clock-divider {
+            width: 2px;
+            height: 32px;
+            background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            border-radius: 1px;
+        }
+
+        .floating-clock-date {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            line-height: 1.3;
+            max-width: 180px;
+        }
+
+        @keyframes floatClockIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Responsive: smaller on mobile */
+        @media (max-width: 768px) {
+            .floating-clock {
+                bottom: 16px;
+                left: 16px;
+            }
+
+            .floating-clock-inner {
+                padding: 8px 16px;
+                gap: 10px;
+            }
+
+            .floating-clock-time {
+                font-size: 1.75rem;
+            }
+
+            .floating-clock-date {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+
     <!-- Configuration Script -->
     <script src="config.js?v=2"></script>
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=8"></script>
 </body>
 
 </html>
