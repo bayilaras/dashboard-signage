@@ -94,7 +94,7 @@
         #emptyState .swiper-slide img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
         }
     </style>
 </head>
@@ -209,8 +209,8 @@
             <!-- ROOM SHOWCASE OVERLAY -->
             <div id="showcaseContainer" class="hidden absolute inset-0 z-20 flex items-center justify-center bg-black">
                 <!-- Fullscreen Image -->
-                <img id="showcaseImage" src="" alt="Room" class="w-full h-full object-cover transition-all duration-500"
-                    referrerpolicy="no-referrer">
+                <img id="showcaseImage" src="" alt="Room"
+                    class="w-full h-full object-contain transition-all duration-500" referrerpolicy="no-referrer">
             </div>
 
             <!-- 4. MEETINGS GRID CONTENT -->
@@ -264,8 +264,8 @@
         /* ============================================ */
         .floating-clock {
             position: fixed;
-            bottom: 32px;
-            left: 32px;
+            bottom: 40px;
+            left: 40px;
             z-index: 60;
             pointer-events: none;
             animation: floatClockIn 0.8s ease-out both;
@@ -275,44 +275,44 @@
         .floating-clock-inner {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 12px 24px;
-            background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
+            gap: 24px;
+            padding: 20px 36px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
             box-shadow:
-                0 8px 32px rgba(0, 0, 0, 0.4),
-                0 0 60px rgba(19, 127, 236, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+                0 8px 32px rgba(0, 0, 0, 0.5),
+                0 0 80px rgba(19, 127, 236, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
         }
 
         .floating-clock-time {
-            font-size: 2.5rem;
+            font-size: 4rem;
             font-weight: 900;
             color: #fbbf24;
             letter-spacing: -0.05em;
             line-height: 1;
             font-variant-numeric: tabular-nums;
-            text-shadow: 0 0 30px rgba(251, 191, 36, 0.2);
+            text-shadow: 0 0 40px rgba(251, 191, 36, 0.25);
         }
 
         .floating-clock-divider {
             width: 2px;
-            height: 32px;
-            background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            height: 48px;
+            background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.25), transparent);
             border-radius: 1px;
         }
 
         .floating-clock-date {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.7);
-            letter-spacing: 0.05em;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 0.06em;
             text-transform: uppercase;
-            line-height: 1.3;
-            max-width: 180px;
+            line-height: 1.4;
+            max-width: 240px;
         }
 
         @keyframes floatClockIn {
@@ -335,16 +335,16 @@
             }
 
             .floating-clock-inner {
-                padding: 8px 16px;
-                gap: 10px;
+                padding: 12px 20px;
+                gap: 14px;
             }
 
             .floating-clock-time {
-                font-size: 1.75rem;
+                font-size: 2rem;
             }
 
             .floating-clock-date {
-                font-size: 0.7rem;
+                font-size: 0.8rem;
             }
         }
     </style>

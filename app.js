@@ -627,14 +627,24 @@ function setupConnectionMonitoring() {
         console.log('[Monitor] Offline detected');
     });
 
+    // === Helper: restart Swiper autoplay safely ===
+    function restartSwiperAutoplay() {
+        if (typeof swiperInstance !== 'undefined' && swiperInstance && swiperInstance.autoplay) {
+            console.log('[Monitor] Restarting Swiper autoplay...');
+            swiperInstance.autoplay.stop();
+            swiperInstance.autoplay.start();
+        }
+    }
+
     // === FIX: Restart timers after fullscreen / visibility changes ===
 
     // 1. Page Visibility API - fires when tab/page becomes hidden/visible
     //    F11 can briefly trigger this in some browsers
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-            console.log('[Monitor] Page visible again - restarting auto-refresh');
+            console.log('[Monitor] Page visible again - restarting auto-refresh + Swiper');
             startAutoRefresh();
+            restartSwiperAutoplay();
             // If data is stale (last fetch was too long ago), fetch immediately
             if (Date.now() - state.lastFetchTime > CONFIG.refresh.interval) {
                 console.log('[Monitor] Data is stale, fetching now...');
@@ -645,8 +655,9 @@ function setupConnectionMonitoring() {
 
     // 2. Fullscreen change event (covers both F11 and Fullscreen API)
     document.addEventListener('fullscreenchange', () => {
-        console.log('[Monitor] Fullscreen changed - restarting auto-refresh');
+        console.log('[Monitor] Fullscreen changed - restarting auto-refresh + Swiper');
         startAutoRefresh();
+        restartSwiperAutoplay();
     });
 
     // 3. Resize event - F11 always fires a resize
@@ -654,12 +665,17 @@ function setupConnectionMonitoring() {
     window.addEventListener('resize', () => {
         if (resizeDebounce) clearTimeout(resizeDebounce);
         resizeDebounce = setTimeout(() => {
-            console.log('[Monitor] Window resized - ensuring auto-refresh is running');
+            console.log('[Monitor] Window resized - ensuring auto-refresh + Swiper running');
             startAutoRefresh();
+            restartSwiperAutoplay();
+            // Also force Swiper to recalculate its dimensions
+            if (typeof swiperInstance !== 'undefined' && swiperInstance) {
+                swiperInstance.update();
+            }
         }, 500);
     });
 
-    // 4. Watchdog timer - safety net that checks every 60s if refresh is overdue
+    // 4. Data watchdog timer - safety net that checks every 60s if refresh is overdue
     setInterval(() => {
         const elapsed = Date.now() - state.lastFetchTime;
         if (elapsed > CONFIG.refresh.interval * 1.5) {
@@ -668,6 +684,16 @@ function setupConnectionMonitoring() {
             fetchMeetingData();
         }
     }, 60000);
+
+    // 5. Swiper autoplay watchdog - checks every 10s if slides should be moving
+    setInterval(() => {
+        if (typeof swiperInstance !== 'undefined' && swiperInstance && swiperInstance.autoplay) {
+            if (!swiperInstance.autoplay.running) {
+                console.warn('[Swiper Watchdog] Autoplay was stopped! Restarting...');
+                swiperInstance.autoplay.start();
+            }
+        }
+    }, 10000);
 }
 
 function setupAutoReload() {
@@ -842,7 +868,7 @@ function renderSlideContent(slide) {
                 <div class="w-full h-full relative bg-black">
                     <img src="${slide.image}" 
                          alt="${slide.title || ''}" 
-                         class="w-full h-full object-cover"
+                         class="w-full h-full object-contain"
                          referrerpolicy="no-referrer"
                          onload="console.log('[Slideshow] Image loaded successfully:', this.src)"
                          onerror="console.error('[Slideshow] Image FAILED:', this.src); this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center bg-gray-900 text-white text-xl\'>Gagal Memuat Gambar</div>'">
