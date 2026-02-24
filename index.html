@@ -275,13 +275,13 @@
         .floating-clock-inner {
             display: flex;
             align-items: center;
-            gap: 24px;
-            padding: 20px 36px;
+            gap: clamp(16px, 1.5vw, 32px);
+            padding: clamp(14px, 1.2vw, 28px) clamp(24px, 2vw, 48px);
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
+            border-radius: clamp(16px, 1.5vw, 32px);
             box-shadow:
                 0 8px 32px rgba(0, 0, 0, 0.5),
                 0 0 80px rgba(19, 127, 236, 0.1),
@@ -289,7 +289,7 @@
         }
 
         .floating-clock-time {
-            font-size: 4rem;
+            font-size: clamp(2.5rem, 6.5vw, 8rem);
             font-weight: 900;
             color: #fbbf24;
             letter-spacing: -0.05em;
@@ -300,19 +300,19 @@
 
         .floating-clock-divider {
             width: 2px;
-            height: 48px;
+            height: clamp(32px, 4vw, 72px);
             background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.25), transparent);
             border-radius: 1px;
         }
 
         .floating-clock-date {
-            font-size: 1.1rem;
+            font-size: clamp(0.8rem, 1.5vw, 2rem);
             font-weight: 600;
             color: rgba(255, 255, 255, 0.8);
             letter-spacing: 0.06em;
             text-transform: uppercase;
             line-height: 1.4;
-            max-width: 240px;
+            max-width: clamp(160px, 18vw, 320px);
         }
 
         @keyframes floatClockIn {
