@@ -311,47 +311,16 @@
         .floating-logo-inner {
             display: flex;
             align-items: center;
-            gap: clamp(12px, max(1.5vw, 1.5vh), 24px);
-            padding: clamp(12px, max(1.2vw, 1.2vh), 24px) clamp(18px, max(1.5vw, 1.5vh), 32px);
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: clamp(12px, 1vw, 20px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            gap: clamp(14px, max(1.8vw, 1.8vh), 28px);
+            padding: 0;
+            background: none;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 20px rgba(0, 0, 0, 0.3));
         }
 
         .floating-logo-img {
-            width: clamp(48px, max(5vw, 5vh), 100px);
-            height: clamp(48px, max(5vw, 5vh), 100px);
+            width: clamp(52px, max(5.5vw, 6vh), 110px);
+            height: clamp(52px, max(5.5vw, 6vh), 110px);
             object-fit: contain;
-        }
-
-        .floating-logo-fallback {
-            width: clamp(36px, 3.5vw, 64px);
-            height: clamp(36px, 3.5vw, 64px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .floating-logo-icon {
-            font-size: clamp(24px, 2.5vw, 48px);
-        }
-
-        .floating-logo-title {
-            font-size: clamp(0.7rem, 1.2vw, 1.4rem);
-            font-weight: 800;
-            color: #ffffff;
-            letter-spacing: 0.02em;
-            line-height: 1.2;
-        }
-
-        .floating-logo-subtitle {
-            font-size: clamp(0.5rem, 0.8vw, 0.9rem);
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.6);
-            letter-spacing: 0.04em;
         }
 
         /* ============================================ */
@@ -527,13 +496,12 @@
             }
 
             .floating-logo-img {
-                width: clamp(56px, 7vh, 120px);
-                height: clamp(56px, 7vh, 120px);
+                width: clamp(60px, 8vh, 130px);
+                height: clamp(60px, 8vh, 130px);
             }
 
             .floating-logo-inner {
-                gap: clamp(14px, 2vh, 24px);
-                padding: clamp(14px, 1.8vh, 24px) clamp(20px, 2vh, 36px);
+                gap: clamp(16px, 2.5vh, 28px);
             }
         }
     </style>
