@@ -83,7 +83,7 @@ const CONFIG = {
     pagination: {
       enabled: true,
       itemsPerPage: 4, // Tampilkan hingga 4 meeting sekaligus (optimal untuk layar portrait)
-      interval: 15000, // Ganti halaman setiap 15 detik
+      interval: 20000, // Ganti halaman setiap 20 detik (lebih lama agar sempat dibaca)
       animationDuration: 800 // Durasi animasi fade
     }
   },
@@ -161,7 +161,7 @@ const CONFIG = {
   // Muncul di sela-sela pergantian halaman jadwal
   roomShowcase: {
     enabled: true,
-    interval: 13000, // Durasi per slide (13 detik)
+    interval: 8000, // Durasi per slide saat ada rapat (8 detik, lebih singkat agar jadwal lebih sering tampil)
     // Gunakan slides dari Google Drive (sheet "Slides" di Spreadsheet)
     useGoogleDriveSlides: true,
     // Judul default jika slide tidak memiliki title
