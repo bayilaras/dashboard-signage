@@ -217,42 +217,60 @@ function updateClock() {
 
 // ============================================
 // Gregorian to Hijri Date Conversion
-// Using the Kuwaiti Algorithm
+// Using Intl.DateTimeFormat with islamic-umalqura calendar
 // ============================================
 function getHijriDate(date) {
-    const hijriMonths = [
-        'Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir',
-        'Jumadil Awal', 'Jumadil Akhir', 'Rajab', 'Syaban',
-        'Ramadhan', 'Syawal', 'Dzulqaidah', 'Dzulhijjah'
-    ];
+    // Indonesian Hijri month names mapping
+    const hijriMonthsID = {
+        'Muharram': 'Muharram',
+        'Safar': 'Safar',
+        'Rabiʻ I': 'Rabiul Awal',
+        'Rabiʻ II': 'Rabiul Akhir',
+        'Jumada I': 'Jumadil Awal',
+        'Jumada II': 'Jumadil Akhir',
+        'Rajab': 'Rajab',
+        'Shaʻban': 'Syaban',
+        'Ramadan': 'Ramadhan',
+        'Shawwal': 'Syawal',
+        'Dhuʻl-Qiʻdah': 'Dzulqaidah',
+        'Dhuʻl-Hijjah': 'Dzulhijjah'
+    };
 
-    // Kuwaiti Algorithm
-    let d = date.getDate();
-    let m = date.getMonth();
-    let y = date.getFullYear();
+    try {
+        // Use Intl.DateTimeFormat with islamic-umalqura calendar
+        const hijriDay = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+            day: 'numeric'
+        }).format(date);
 
-    let jd = Math.floor((11 * y + 3) / 30) + 354 * y + 30 * m
-        - Math.floor((m - 1) / 2) + d + 1948440 - 385;
+        const hijriMonth = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+            month: 'long'
+        }).format(date);
 
-    if (m < 2 || (m === 1 && d <= 0)) {
-        // Adjusted for Jan/Feb
+        const hijriYear = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+            year: 'numeric'
+        }).format(date);
+
+        // Clean year (remove " AH" suffix if present)
+        const yearClean = hijriYear.replace(/\s*AH$/i, '').trim();
+
+        // Map to Indonesian month name
+        const monthID = hijriMonthsID[hijriMonth] || hijriMonth;
+
+        return `${hijriDay} ${monthID} ${yearClean} H`;
+    } catch (e) {
+        console.error('Hijri conversion error:', e);
+        // Fallback: use basic islamic calendar
+        try {
+            const formatted = new Intl.DateTimeFormat('id-u-ca-islamic', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            }).format(date);
+            return formatted + ' H';
+        } catch (e2) {
+            return '';
+        }
     }
-
-    // Julian Day to Hijri
-    let jd2 = jd - 1948440 + 10632;
-    let n = Math.floor((jd2 - 1) / 10631);
-    jd2 = jd2 - 10631 * n + 354;
-
-    let j = (Math.floor((10985 - jd2) / 5316)) * (Math.floor((50 * jd2) / 17719))
-        + (Math.floor(jd2 / 5670)) * (Math.floor((43 * jd2) / 15238));
-    jd2 = jd2 - (Math.floor((30 - j) / 15)) * (Math.floor((17719 * j) / 50))
-        - (Math.floor(j / 16)) * (Math.floor((15238 * j) / 43)) + 29;
-
-    let hm = Math.floor((24 * jd2) / 709);
-    let hd = jd2 - Math.floor((709 * hm) / 24);
-    let hy = 30 * n + j - 30;
-
-    return `${hd} ${hijriMonths[hm - 1]} ${hy} H`;
 }
 
 // ============================================
