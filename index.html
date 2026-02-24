@@ -244,28 +244,127 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- FLOATING CLOCK OVERLAY (Always on top)       -->
+    <!-- FLOATING LOGO OVERLAY (Top-left)             -->
+    <!-- ============================================ -->
+    <div id="floatingLogo" class="floating-logo hidden">
+        <div class="floating-logo-inner">
+            <img src="assets/logo-atr-bpn.png" alt="Logo ATR/BPN" class="floating-logo-img"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <!-- Fallback text logo if image not found -->
+            <div class="floating-logo-fallback" style="display:none;">
+                <span class="floating-logo-icon">🏛️</span>
+            </div>
+            <div class="floating-logo-text">
+                <div class="floating-logo-title">Kementerian ATR/BPN</div>
+                <div class="floating-logo-subtitle">Kantor Pertanahan Kota Semarang</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- FLOATING CLOCK OVERLAY (Bottom-left)         -->
     <!-- ============================================ -->
     <div id="floatingClock" class="floating-clock hidden">
-        <!-- Glass Container -->
         <div class="floating-clock-inner">
             <!-- Time -->
             <div class="floating-clock-time" id="floatingTime">--:--</div>
             <!-- Divider -->
             <div class="floating-clock-divider"></div>
-            <!-- Date -->
-            <div class="floating-clock-date" id="floatingDate">Memuat...</div>
+            <!-- Date Block -->
+            <div class="floating-clock-date-block">
+                <div class="floating-clock-date" id="floatingDate">Memuat...</div>
+                <div class="floating-clock-hijri" id="floatingHijri"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- RUNNING TEXT TICKER (Bottom)                  -->
+    <!-- ============================================ -->
+    <div id="floatingTicker" class="floating-ticker hidden">
+        <div class="ticker-track">
+            <span class="ticker-content" id="tickerContent">
+                📢 Selamat Datang di Kantor Pertanahan Kota Semarang &nbsp;•&nbsp;
+                🕐 Jam Pelayanan: Senin-Jumat 08.00 - 16.00 WIB &nbsp;•&nbsp;
+                📋 Jangan Lupa Presensi Datang dan Pulang melalui E-Office &nbsp;•&nbsp;
+                🏢 Jadwal Rapat dapat dilihat pada Dashboard ini &nbsp;•&nbsp;
+            </span>
+            <span class="ticker-content ticker-duplicate" id="tickerContentDup">
+                📢 Selamat Datang di Kantor Pertanahan Kota Semarang &nbsp;•&nbsp;
+                🕐 Jam Pelayanan: Senin-Jumat 08.00 - 16.00 WIB &nbsp;•&nbsp;
+                📋 Jangan Lupa Presensi Datang dan Pulang melalui E-Office &nbsp;•&nbsp;
+                🏢 Jadwal Rapat dapat dilihat pada Dashboard ini &nbsp;•&nbsp;
+            </span>
         </div>
     </div>
 
     <style>
         /* ============================================ */
-        /* FLOATING CLOCK - Premium Digital Signage     */
+        /* FLOATING LOGO - Top Left                    */
+        /* ============================================ */
+        .floating-logo {
+            position: fixed;
+            top: clamp(20px, 2vw, 40px);
+            left: clamp(20px, 2vw, 40px);
+            z-index: 60;
+            pointer-events: none;
+            animation: floatClockIn 0.8s ease-out both;
+            animation-delay: 0.5s;
+        }
+
+        .floating-logo-inner {
+            display: flex;
+            align-items: center;
+            gap: clamp(10px, 1vw, 18px);
+            padding: clamp(8px, 0.8vw, 16px) clamp(14px, 1.2vw, 24px);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: clamp(12px, 1vw, 20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .floating-logo-img {
+            width: clamp(36px, 3.5vw, 64px);
+            height: clamp(36px, 3.5vw, 64px);
+            object-fit: contain;
+        }
+
+        .floating-logo-fallback {
+            width: clamp(36px, 3.5vw, 64px);
+            height: clamp(36px, 3.5vw, 64px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .floating-logo-icon {
+            font-size: clamp(24px, 2.5vw, 48px);
+        }
+
+        .floating-logo-title {
+            font-size: clamp(0.7rem, 1.2vw, 1.4rem);
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.02em;
+            line-height: 1.2;
+        }
+
+        .floating-logo-subtitle {
+            font-size: clamp(0.5rem, 0.8vw, 0.9rem);
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.04em;
+        }
+
+        /* ============================================ */
+        /* FLOATING CLOCK - Bottom Left                */
         /* ============================================ */
         .floating-clock {
             position: fixed;
-            bottom: 40px;
-            left: 40px;
+            bottom: clamp(60px, 5vw, 90px);
+            left: clamp(20px, 2vw, 40px);
             z-index: 60;
             pointer-events: none;
             animation: floatClockIn 0.8s ease-out both;
@@ -305,14 +404,68 @@
             border-radius: 1px;
         }
 
+        .floating-clock-date-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
         .floating-clock-date {
             font-size: clamp(0.8rem, 1.5vw, 2rem);
             font-weight: 600;
             color: rgba(255, 255, 255, 0.8);
             letter-spacing: 0.06em;
             text-transform: uppercase;
-            line-height: 1.4;
-            max-width: clamp(160px, 18vw, 320px);
+            line-height: 1.3;
+            max-width: clamp(160px, 20vw, 360px);
+        }
+
+        .floating-clock-hijri {
+            font-size: clamp(0.6rem, 1vw, 1.3rem);
+            font-weight: 500;
+            color: rgba(251, 191, 36, 0.7);
+            letter-spacing: 0.04em;
+            line-height: 1.3;
+        }
+
+        /* ============================================ */
+        /* RUNNING TEXT TICKER - Bottom                 */
+        /* ============================================ */
+        .floating-ticker {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 60;
+            pointer-events: none;
+            background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.7) 30%, rgba(0, 0, 0, 0.85));
+            padding: clamp(8px, 0.8vw, 14px) 0;
+            border-top: 1px solid rgba(19, 127, 236, 0.3);
+        }
+
+        .ticker-track {
+            display: flex;
+            white-space: nowrap;
+            animation: tickerScroll 40s linear infinite;
+        }
+
+        .ticker-content {
+            font-size: clamp(0.8rem, 1.2vw, 1.5rem);
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 0.03em;
+            padding: 0 2vw;
+            flex-shrink: 0;
+        }
+
+        @keyframes tickerScroll {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
         }
 
         @keyframes floatClockIn {
@@ -330,7 +483,7 @@
         /* Responsive: smaller on mobile */
         @media (max-width: 768px) {
             .floating-clock {
-                bottom: 16px;
+                bottom: 50px;
                 left: 16px;
             }
 
@@ -346,12 +499,17 @@
             .floating-clock-date {
                 font-size: 0.8rem;
             }
+
+            .floating-logo {
+                top: 12px;
+                left: 12px;
+            }
         }
     </style>
 
     <!-- Configuration Script -->
     <script src="config.js?v=2"></script>
-    <script src="app.js?v=8"></script>
+    <script src="app.js?v=9"></script>
 </body>
 
 </html>
