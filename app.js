@@ -149,12 +149,19 @@ function showState(stateName) {
         states[stateName].classList.remove('hidden');
     }
 
-    // Floating overlays: only visible during slideshow (empty state)
+    // Floating overlays visibility
     if (stateName === 'empty') {
+        // Slideshow mode: show clock, logo, and ticker
         floatingClock?.classList.remove('hidden');
         floatingLogo?.classList.remove('hidden');
         floatingTicker?.classList.remove('hidden');
+    } else if (stateName === 'content') {
+        // Meeting schedule mode: show ticker only (clock is in header)
+        floatingClock?.classList.add('hidden');
+        floatingLogo?.classList.add('hidden');
+        floatingTicker?.classList.remove('hidden');
     } else {
+        // Loading/Error: hide all overlays
         floatingClock?.classList.add('hidden');
         floatingLogo?.classList.add('hidden');
         floatingTicker?.classList.add('hidden');
@@ -513,6 +520,10 @@ function displayShowcaseSlide(showcaseContainer) {
             document.getElementById('floatingLogo')?.classList.remove('hidden');
             document.getElementById('floatingTicker')?.classList.remove('hidden');
 
+            // Hide header to prevent duplicate clock
+            const header = document.querySelector('header');
+            if (header) header.style.display = 'none';
+
             // Fade in
             requestAnimationFrame(() => {
                 showcaseContainer.style.opacity = '1';
@@ -545,6 +556,10 @@ function resumeAfterShowcase() {
             document.getElementById('floatingClock')?.classList.add('hidden');
             document.getElementById('floatingLogo')?.classList.add('hidden');
             document.getElementById('floatingTicker')?.classList.add('hidden');
+
+            // Restore header visibility
+            const header = document.querySelector('header');
+            if (header) header.style.display = '';
 
             // Go to Page 0
             state.pagination.currentPage = 0;
