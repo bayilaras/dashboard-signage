@@ -149,19 +149,29 @@ function showState(stateName) {
         states[stateName].classList.remove('hidden');
     }
 
+    // Header visibility
+    const header = document.querySelector('header');
+    const footer = document.querySelector('footer');
+
     // Floating overlays visibility
     if (stateName === 'empty') {
-        // Slideshow mode: show clock, logo, and ticker
+        // Slideshow mode: HIDE header/footer, show floating overlays
+        if (header) header.style.display = 'none';
+        if (footer) footer.style.display = 'none';
         floatingClock?.classList.remove('hidden');
         floatingLogo?.classList.remove('hidden');
         floatingTicker?.classList.remove('hidden');
     } else if (stateName === 'content') {
-        // Meeting schedule mode: show ticker only (clock is in header)
+        // Meeting schedule mode: show header, show ticker only
+        if (header) header.style.display = '';
+        if (footer) footer.style.display = '';
         floatingClock?.classList.add('hidden');
         floatingLogo?.classList.add('hidden');
         floatingTicker?.classList.remove('hidden');
     } else {
-        // Loading/Error: hide all overlays
+        // Loading/Error: show header, hide all overlays
+        if (header) header.style.display = '';
+        if (footer) footer.style.display = '';
         floatingClock?.classList.add('hidden');
         floatingLogo?.classList.add('hidden');
         floatingTicker?.classList.add('hidden');
@@ -1069,6 +1079,61 @@ function initSwiper() {
 }
 
 
+// ============================================
+// SLIDE IMAGE ERROR HANDLER (Auto-Retry + Fallback)
+// ============================================
+const slideImageRetryCount = {};
+
+function handleSlideImageError(imgElement, imgId, originalSrc, slideTitle) {
+    const retryKey = imgId;
+    slideImageRetryCount[retryKey] = (slideImageRetryCount[retryKey] || 0) + 1;
+    const currentRetry = slideImageRetryCount[retryKey];
+    const maxRetries = 3;
+
+    console.error(`[Slideshow] Image FAILED (attempt ${currentRetry}/${maxRetries}):`, originalSrc);
+
+    if (currentRetry <= maxRetries) {
+        // Retry with exponential backoff (3s, 6s, 12s)
+        const delay = 3000 * Math.pow(2, currentRetry - 1);
+        console.log(`[Slideshow] Retrying image in ${delay / 1000}s...`);
+
+        // Update loader text
+        const loader = document.getElementById(imgId + '_loader');
+        if (loader) {
+            loader.innerHTML = `
+                <div class="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p class="text-yellow-400 text-lg">Koneksi lambat, mencoba ulang (${currentRetry}/${maxRetries})...</p>
+            `;
+            loader.style.display = '';
+        }
+
+        setTimeout(() => {
+            // Add cache-buster to force re-fetch
+            const cacheBuster = `${originalSrc}${originalSrc.includes('?') ? '&' : '?'}_t=${Date.now()}`;
+            imgElement.src = cacheBuster;
+        }, delay);
+    } else {
+        // All retries failed - show visible fallback
+        console.error(`[Slideshow] All retries failed for:`, originalSrc);
+        imgElement.style.display = 'none';
+
+        const loader = document.getElementById(imgId + '_loader');
+        if (loader) {
+            loader.innerHTML = `
+                <div class="flex flex-col items-center justify-center text-center p-8">
+                    <div class="w-24 h-24 bg-[#137fec]/10 rounded-full flex items-center justify-center mb-6">
+                        <span class="material-symbols-outlined text-[#137fec] text-5xl">image_not_supported</span>
+                    </div>
+                    <h2 class="text-2xl md:text-4xl font-bold text-white mb-3">${slideTitle}</h2>
+                    <p class="text-[#92adc9] text-lg">Gambar tidak dapat dimuat</p>
+                    <p class="text-[#92adc9]/50 text-sm mt-2">Koneksi internet terputus atau lambat</p>
+                </div>
+            `;
+            loader.style.display = '';
+        }
+    }
+}
+
 function renderSlideContent(slide) {
     switch (slide.type) {
         case 'welcome':
@@ -1083,17 +1148,26 @@ function renderSlideContent(slide) {
 
         case 'image':
             console.log('[Slideshow] Rendering Fullscreen Image:', slide.image);
+            // Generate unique ID for this slide's image for retry tracking
+            const imgId = 'slideImg_' + (slide.id || Math.random().toString(36).substr(2, 9));
             return `
-                <div class="w-full h-full relative bg-black">
+                <div class="w-full h-full relative bg-black" id="${imgId}_container">
+                    <!-- Loading spinner (shown while image loads) -->
+                    <div id="${imgId}_loader" class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                        <div class="w-12 h-12 border-4 border-[#137fec] border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p class="text-[#92adc9] text-lg">Memuat gambar...</p>
+                    </div>
+                    
                     <img src="${slide.image}" 
                          alt="${slide.title || ''}" 
-                         class="w-full h-full object-contain"
+                         id="${imgId}"
+                         class="w-full h-full object-contain relative z-20"
                          referrerpolicy="no-referrer"
-                         onload="console.log('[Slideshow] Image loaded successfully:', this.src)"
-                         onerror="console.error('[Slideshow] Image FAILED:', this.src); this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center bg-gray-900 text-white text-xl\'>Gagal Memuat Gambar</div>'">
+                         onload="console.log('[Slideshow] Image loaded:', this.src); var loader = document.getElementById('${imgId}_loader'); if(loader) loader.style.display='none';"
+                         onerror="handleSlideImageError(this, '${imgId}', '${(slide.image || '').replace(/'/g, "\\'")}', '${(slide.title || 'Informasi').replace(/'/g, "\\'")}')">
                     
                     ${slide.title ? `
-                    <div class="absolute bottom-6 left-0 right-0 text-center pointer-events-none">
+                    <div class="absolute bottom-6 left-0 right-0 text-center pointer-events-none z-30">
                         <span class="inline-block bg-black/50 backdrop-blur-md text-white px-6 py-2 rounded-full text-lg md:text-xl font-semibold shadow-lg">
                             ${slide.title}
                         </span>
