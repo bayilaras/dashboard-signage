@@ -745,12 +745,52 @@ function setupConnectionMonitoring() {
         console.log('[Monitor] Offline detected');
     });
 
-    // === Helper: restart Swiper autoplay safely ===
+    // === Track last known slide index for stuck detection ===
+    let lastKnownSlideIndex = -1;
+    let stuckCheckCount = 0;
+
+    // === Helper: restart Swiper autoplay safely (AGGRESSIVE) ===
     function restartSwiperAutoplay() {
         if (typeof swiperInstance !== 'undefined' && swiperInstance && swiperInstance.autoplay) {
-            console.log('[Monitor] Restarting Swiper autoplay...');
-            swiperInstance.autoplay.stop();
-            swiperInstance.autoplay.start();
+            console.log('[Monitor] Restarting Swiper autoplay (aggressive)...');
+            try {
+                // Force stop, reset internal timer, then restart
+                swiperInstance.autoplay.stop();
+
+                // Update Swiper dimensions (critical after F11 resize)
+                swiperInstance.update();
+
+                // Small delay to let Edge finish layout recalculation
+                setTimeout(() => {
+                    if (swiperInstance && swiperInstance.autoplay) {
+                        swiperInstance.autoplay.start();
+                        console.log('[Monitor] Swiper autoplay restarted successfully');
+                    }
+                }, 300);
+            } catch (e) {
+                console.error('[Monitor] Error restarting Swiper:', e);
+                // Nuclear option: destroy and re-init
+                forceReinitSwiper();
+            }
+        }
+    }
+
+    // === Nuclear option: fully destroy & re-create Swiper ===
+    function forceReinitSwiper() {
+        console.warn('[Monitor] Force re-initializing Swiper...');
+        if (swiperInstance) {
+            try {
+                swiperInstance.destroy(true, true);
+            } catch (e) { /* ignore */ }
+            swiperInstance = null;
+        }
+        // Only re-init if we're in slideshow/idle mode (emptyState visible)
+        const emptyState = document.getElementById('emptyState');
+        if (emptyState && !emptyState.classList.contains('hidden')) {
+            setTimeout(() => {
+                initSwiper();
+                console.log('[Monitor] Swiper re-initialized from scratch');
+            }, 500);
         }
     }
 
@@ -762,7 +802,8 @@ function setupConnectionMonitoring() {
         if (document.visibilityState === 'visible') {
             console.log('[Monitor] Page visible again - restarting auto-refresh + Swiper');
             startAutoRefresh();
-            restartSwiperAutoplay();
+            // Delay Swiper restart to let browser finish rendering
+            setTimeout(() => restartSwiperAutoplay(), 500);
             // If data is stale (last fetch was too long ago), fetch immediately
             if (Date.now() - state.lastFetchTime > CONFIG.refresh.interval) {
                 console.log('[Monitor] Data is stale, fetching now...');
@@ -771,29 +812,49 @@ function setupConnectionMonitoring() {
         }
     });
 
-    // 2. Fullscreen change event (covers both F11 and Fullscreen API)
+    // 2. Fullscreen change event (Fullscreen API only - NOT F11!)
     document.addEventListener('fullscreenchange', () => {
-        console.log('[Monitor] Fullscreen changed - restarting auto-refresh + Swiper');
+        console.log('[Monitor] Fullscreen API changed - restarting auto-refresh + Swiper');
         startAutoRefresh();
-        restartSwiperAutoplay();
+        setTimeout(() => restartSwiperAutoplay(), 500);
     });
 
-    // 3. Resize event - F11 always fires a resize
+    // 3. F11 KEY HANDLER (Edge-specific fix)
+    // F11 in Edge does NOT trigger fullscreenchange, only resize.
+    // We explicitly listen for the F11 key to ensure Swiper gets restarted.
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'F11' || e.keyCode === 122) {
+            console.log('[Monitor] F11 key detected - scheduling Swiper restart...');
+            // Edge takes ~500-800ms to complete fullscreen transition
+            // We schedule multiple restart attempts at staggered intervals
+            setTimeout(() => restartSwiperAutoplay(), 600);
+            setTimeout(() => restartSwiperAutoplay(), 1500);
+            setTimeout(() => {
+                // Final safety check after Edge completes transition
+                if (swiperInstance && swiperInstance.autoplay && !swiperInstance.autoplay.running) {
+                    console.warn('[Monitor] Swiper still stuck after F11 - force re-init');
+                    forceReinitSwiper();
+                }
+            }, 3000);
+        }
+    });
+
+    // 4. Resize event - F11 always fires a resize
+    // Use LONGER debounce for Edge to avoid restarting mid-transition
     let resizeDebounce = null;
+    let resizeCount = 0;
     window.addEventListener('resize', () => {
+        resizeCount++;
         if (resizeDebounce) clearTimeout(resizeDebounce);
         resizeDebounce = setTimeout(() => {
-            console.log('[Monitor] Window resized - ensuring auto-refresh + Swiper running');
+            console.log(`[Monitor] Window resized (${resizeCount}x) - ensuring auto-refresh + Swiper running`);
+            resizeCount = 0;
             startAutoRefresh();
             restartSwiperAutoplay();
-            // Also force Swiper to recalculate its dimensions
-            if (typeof swiperInstance !== 'undefined' && swiperInstance) {
-                swiperInstance.update();
-            }
-        }, 500);
+        }, 800); // Longer debounce to let Edge settle
     });
 
-    // 4. Data watchdog timer - safety net that checks every 60s if refresh is overdue
+    // 5. Data watchdog timer - safety net that checks every 60s if refresh is overdue
     setInterval(() => {
         const elapsed = Date.now() - state.lastFetchTime;
         if (elapsed > CONFIG.refresh.interval * 1.5) {
@@ -803,15 +864,38 @@ function setupConnectionMonitoring() {
         }
     }, 60000);
 
-    // 5. Swiper autoplay watchdog - checks every 10s if slides should be moving
+    // 6. Swiper autoplay watchdog - checks every 5s (was 10s) if slides should be moving
+    // Also detects STUCK slides (autoplay.running=true but slide not changing)
     setInterval(() => {
         if (typeof swiperInstance !== 'undefined' && swiperInstance && swiperInstance.autoplay) {
+            const currentIndex = swiperInstance.realIndex;
+
             if (!swiperInstance.autoplay.running) {
                 console.warn('[Swiper Watchdog] Autoplay was stopped! Restarting...');
                 swiperInstance.autoplay.start();
+                stuckCheckCount = 0;
+            } else if (currentIndex === lastKnownSlideIndex) {
+                stuckCheckCount++;
+                // If slide hasn't changed in 3 checks (15s) despite autoplay "running",
+                // it's likely stuck (Edge bug)
+                if (stuckCheckCount >= 3) {
+                    console.warn(`[Swiper Watchdog] Slide stuck at index ${currentIndex} for ${stuckCheckCount * 5}s! Force advancing...`);
+                    try {
+                        swiperInstance.slideNext();
+                        swiperInstance.autoplay.stop();
+                        swiperInstance.autoplay.start();
+                    } catch (e) {
+                        forceReinitSwiper();
+                    }
+                    stuckCheckCount = 0;
+                }
+            } else {
+                stuckCheckCount = 0;
             }
+
+            lastKnownSlideIndex = currentIndex;
         }
-    }, 10000);
+    }, 5000);
 }
 
 function setupAutoReload() {
