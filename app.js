@@ -1025,24 +1025,44 @@ async function loadSlides() {
 let swiperInstance = null;
 
 function startSlideshow() {
-    if (swiperInstance) return; // Already running
-
-    // Load slides if not loaded
-    if (state.slideshow.slides.length === 0) {
-        loadSlides().then(() => {
-            initSwiper();
-        });
-    } else {
-        initSwiper();
+    // FIX 1: Always destroy stale Swiper instance before re-init
+    // This prevents blank screen when transitioning back to idle mode
+    if (swiperInstance) {
+        try { swiperInstance.destroy(true, true); } catch (e) { }
+        swiperInstance = null;
+        console.log('[Slideshow] Destroyed stale Swiper instance for clean re-init');
     }
+
+    // FIXES 3 & 5: Always reload slides to get fresh data from API
+    loadSlides().then(() => {
+        // GUARD: Only init if we're still in idle mode (emptyState visible)
+        const emptyState = document.getElementById('emptyState');
+        if (emptyState && !emptyState.classList.contains('hidden')) {
+            initSwiper();
+        } else {
+            console.log('[Slideshow] Mode changed during loadSlides(), skipping init');
+        }
+    }).catch(err => {
+        console.error('[Slideshow] loadSlides failed:', err);
+        // Still try to init with whatever slides we have
+        const emptyState = document.getElementById('emptyState');
+        if (emptyState && !emptyState.classList.contains('hidden') && state.slideshow.slides.length > 0) {
+            initSwiper();
+        }
+    });
 }
 
 function stopSlideshow() {
     if (swiperInstance) {
-        swiperInstance.destroy(true, true);
+        try { swiperInstance.destroy(true, true); } catch (e) { }
         swiperInstance = null;
         console.log('[Slideshow] Stopped (Swiper Destroyed)');
     }
+    // FIX 4: Clear slide DOM to prevent stale content
+    const slideContent = document.getElementById('slideContent');
+    if (slideContent) slideContent.innerHTML = '';
+    // FIX 5: Reset slide data so next idle mode reloads fresh from API
+    state.slideshow.slides = [];
 }
 
 function initSwiper() {
@@ -1067,7 +1087,8 @@ function initSwiper() {
         },
         centeredSlides: true,
         autoplay: {
-            delay: state.slideshow.interval || 8000,
+            // FIX 2: Use CONFIG interval (13000ms) instead of state default (8000ms)
+            delay: CONFIG.slideshow?.interval || 13000,
             disableOnInteraction: false,
         },
         pagination: {
