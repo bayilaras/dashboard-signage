@@ -651,8 +651,7 @@ function createMeetingCard(meeting) {
 
     const card = document.createElement('div');
     // Using group for hover effects, relative for positioning
-    // h-auto min-h-[180px] to ensure consistency
-    card.className = `group relative flex flex-col p-6 rounded-2xl border ${borderColor} bg-[#1a232e] ${bgPulse} ${cardOpacity} shadow-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02]`;
+    card.className = `meeting-card group relative flex flex-col p-6 rounded-2xl border ${borderColor} bg-[#1a232e] ${bgPulse} ${cardOpacity} shadow-2xl overflow-hidden transition-all duration-300`;
 
     // HTML Content
     card.innerHTML = `
@@ -663,47 +662,44 @@ function createMeetingCard(meeting) {
         <div class="flex justify-between items-start mb-4 z-10">
             <div class="flex flex-col">
                 <div class="flex items-baseline gap-2 flex-wrap">
-                    <span class="text-3xl font-black text-white tracking-tight">${meeting.jamMulai}</span>
-                    <span class="text-white/40 text-xl font-normal">s.d ${meeting.jamSelesai} WIB</span>
+                    <span class="card-time text-4xl font-black text-white tracking-tight">${meeting.jamMulai}</span>
+                    <span class="card-time-end text-white/40 text-2xl font-normal">s.d ${meeting.jamSelesai} WIB</span>
                 </div>
             </div>
-            <span class="px-3 py-1 rounded-lg border text-xs font-bold tracking-widest ${statusBadgeClass} flex items-center gap-1">
-                ${isOngoing ? '<span class="relative flex h-2 w-2 mr-1"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>' : ''}
+            <span class="card-status-badge px-3 py-1.5 rounded-lg border text-sm font-bold tracking-widest ${statusBadgeClass} flex items-center gap-1.5 shrink-0">
+                ${isOngoing ? '<span class="relative flex h-2.5 w-2.5 mr-1"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span></span>' : ''}
                 ${statusLabel}
             </span>
         </div>
 
         <!-- Middle: Agenda -->
-        <h3 class="text-xl md:text-2xl font-bold text-white leading-snug mb-4 line-clamp-3 group-hover:line-clamp-none transition-all">
+        <h3 class="card-agenda text-2xl md:text-3xl font-bold text-white leading-snug mb-4 line-clamp-3 group-hover:line-clamp-none transition-all">
             ${meeting.keperluan || 'Agenda Rapat'}
         </h3>
 
         <!-- Bottom: Room & Unit -->
-        <!-- Bottom: Room & Unit -->
-        <div class="mt-auto pt-4 border-t border-white/5 flex flex-col gap-2">
+        <div class="card-bottom-section mt-auto pt-4 border-t border-white/5 flex flex-col gap-2">
             <!-- Room & Wayfinding -->
             <div class="flex items-start justify-between gap-2">
-                <div class="flex flex-col overflow-hidden">
+                <div class="flex flex-col overflow-hidden gap-1">
                     <div class="flex items-center gap-2 text-[#92adc9]">
-                        <span class="material-symbols-outlined text-[20px]">meeting_room</span>
-                        <span class="font-semibold text-white/90 truncate">${meeting.ruangan || 'Ruang Rapat'}</span>
+                        <span class="card-room-icon material-symbols-outlined text-[24px]">meeting_room</span>
+                        <span class="card-room-name font-semibold text-white/90 text-lg">${meeting.ruangan || 'Ruang Rapat'}</span>
                     </div>
                     
                     <!-- Wayfinding Detail Text -->
                     ${(() => {
             const wf = getWayfindingConfig(meeting.ruangan);
-            return wf ? `<span class="text-xs text-white/50 ml-7 truncate">${wf.detail}</span>` : '';
+            return wf ? `<span class="card-wayfinding text-sm text-white/50 ml-8">${wf.detail}</span>` : '';
         })()}
                 </div>
-
-                <!-- Wayfinding Badge Removed -->
             </div>
 
             <!-- Unit/Satker -->
             ${meeting.unit ? `
-            <div class="flex items-center gap-2 text-[#92adc9]/70 text-sm">
-                <span class="material-symbols-outlined text-[18px]">domain</span>
-                <span class="truncate">${meeting.unit}</span>
+            <div class="flex items-center gap-2 text-[#92adc9]/70 text-base">
+                <span class="card-unit-icon material-symbols-outlined text-[22px]">domain</span>
+                <span class="card-unit-name">${meeting.unit}</span>
             </div>
             ` : ''}
         </div>
