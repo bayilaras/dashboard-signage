@@ -598,6 +598,15 @@ function renderMeetingPage() {
     const end = start + itemsPerPage;
     const pageData = state.currentMeetings.slice(start, end);
 
+    // Dynamic grid: use single column for 1-2 cards, 2 columns for 3-4 cards
+    if (pageData.length <= 2) {
+        container.classList.add('single-col');
+        container.classList.remove('dual-col');
+    } else {
+        container.classList.remove('single-col');
+        container.classList.add('dual-col');
+    }
+
     // Fade Out
     container.style.opacity = '0';
     container.style.transform = 'translateY(10px)';

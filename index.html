@@ -100,132 +100,151 @@
         /* ============================================ */
         /* SIGNAGE MODE: Optimized for TV 32" Portrait  */
         /* Viewing distance: 7-10 meters                */
+        /* Max 4 cards visible, responsive grid         */
         /* ============================================ */
         @media (orientation: portrait) {
-            /* Force single column grid for bigger cards */
+            /* 2-column grid so cards are side by side, max 4 fit (2x2) */
             #meetingContainer {
-                grid-template-columns: 1fr !important;
-                gap: 3vh !important;
-                padding: 2vh 3vw !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 1.5vh 2vw !important;
+                padding: 1vh 3vw !important;
+                align-content: start !important;
+                max-height: calc(100vh - 28vh) !important;
+                overflow: hidden !important;
             }
 
-            /* Header - massive time display */
+            /* When only 1 or 2 cards, use single column for bigger cards */
+            #meetingContainer.single-col {
+                grid-template-columns: 1fr !important;
+                gap: 2vh !important;
+            }
+
+            /* Header - compact but readable */
             header {
-                padding: 3vh 5vw 2vh !important;
+                padding: 2vh 4vw 1.5vh !important;
             }
 
             #currentDate {
-                font-size: clamp(1.5rem, 3vh, 3rem) !important;
-                letter-spacing: 0.12em;
+                font-size: clamp(1.2rem, 2.5vh, 2.5rem) !important;
+                letter-spacing: 0.1em;
             }
 
             #currentTime {
-                font-size: clamp(5rem, 12vh, 10rem) !important;
-                margin-bottom: 1.5vh !important;
+                font-size: clamp(4rem, 9vh, 8rem) !important;
+                margin-bottom: 1vh !important;
             }
 
             /* Jadwal Ruang Rapat title */
             header h3 {
-                font-size: clamp(2rem, 4.5vh, 4rem) !important;
+                font-size: clamp(1.6rem, 3.5vh, 3rem) !important;
             }
 
             /* Status badge */
             #statusBadge {
-                font-size: clamp(1rem, 2vh, 1.8rem) !important;
-                padding: 0.8vh 2vw !important;
-                border-radius: 2vh !important;
+                font-size: clamp(0.8rem, 1.5vh, 1.4rem) !important;
+                padding: 0.5vh 1.5vw !important;
+                border-radius: 1.5vh !important;
             }
 
             #statusBadge .status-text {
-                font-size: clamp(1rem, 2vh, 1.8rem) !important;
+                font-size: clamp(0.8rem, 1.5vh, 1.4rem) !important;
             }
 
-            /* Meeting cards - enlarged everything */
+            /* Meeting cards - compact to fit 4 on screen */
             .meeting-card {
-                padding: 3vh 4vw !important;
-                border-radius: 2.5vh !important;
+                padding: 1.8vh 3vw !important;
+                border-radius: 2vh !important;
                 border-width: 2px !important;
+                min-height: 0 !important;
             }
 
             .meeting-card .card-time {
-                font-size: clamp(2.5rem, 5.5vh, 5rem) !important;
+                font-size: clamp(1.8rem, 3.5vh, 3.5rem) !important;
+                white-space: nowrap !important;
             }
 
             .meeting-card .card-time-end {
-                font-size: clamp(1.5rem, 3vh, 3rem) !important;
+                font-size: clamp(1rem, 2vh, 2rem) !important;
+                white-space: nowrap !important;
             }
 
             .meeting-card .card-status-badge {
-                font-size: clamp(0.9rem, 1.8vh, 1.6rem) !important;
-                padding: 0.6vh 1.5vw !important;
-                border-radius: 1.2vh !important;
+                font-size: clamp(0.65rem, 1.2vh, 1.1rem) !important;
+                padding: 0.4vh 1.2vw !important;
+                border-radius: 1vh !important;
+                white-space: nowrap !important;
             }
 
             .meeting-card .card-agenda {
-                font-size: clamp(1.8rem, 3.8vh, 3.5rem) !important;
-                line-height: 1.3 !important;
-                margin-bottom: 2vh !important;
+                font-size: clamp(1.2rem, 2.5vh, 2.2rem) !important;
+                line-height: 1.25 !important;
+                margin-bottom: 1vh !important;
+                display: -webkit-box !important;
+                -webkit-line-clamp: 2 !important;
+                line-clamp: 2 !important;
+                -webkit-box-orient: vertical !important;
+                overflow: hidden !important;
             }
 
             .meeting-card .card-room-icon {
-                font-size: clamp(1.5rem, 3vh, 2.5rem) !important;
+                font-size: clamp(1.1rem, 2.2vh, 2rem) !important;
             }
 
             .meeting-card .card-room-name {
-                font-size: clamp(1.3rem, 2.8vh, 2.5rem) !important;
+                font-size: clamp(1rem, 2vh, 1.8rem) !important;
             }
 
             .meeting-card .card-wayfinding {
-                font-size: clamp(1rem, 2vh, 1.8rem) !important;
+                font-size: clamp(0.75rem, 1.4vh, 1.3rem) !important;
                 margin-left: 0 !important;
             }
 
             .meeting-card .card-unit-icon {
-                font-size: clamp(1.2rem, 2.5vh, 2rem) !important;
+                font-size: clamp(0.9rem, 1.8vh, 1.5rem) !important;
             }
 
             .meeting-card .card-unit-name {
-                font-size: clamp(1rem, 2.2vh, 1.8rem) !important;
+                font-size: clamp(0.8rem, 1.6vh, 1.4rem) !important;
             }
 
             .meeting-card .card-bottom-section {
-                padding-top: 2vh !important;
-                gap: 1.5vh !important;
+                padding-top: 1vh !important;
+                gap: 0.8vh !important;
             }
 
             /* Footer */
             footer {
-                padding: 1.5vh 3vw 6vh !important;
+                padding: 1vh 3vw 5vh !important;
             }
 
             footer p {
-                font-size: clamp(0.8rem, 1.5vh, 1.5rem) !important;
+                font-size: clamp(0.7rem, 1.2vh, 1.2rem) !important;
             }
 
             /* Pagination dots */
             #paginationControls {
-                bottom: 12vh !important;
+                bottom: 10vh !important;
             }
 
             #paginationControls > div {
-                height: 1vh !important;
-                min-width: 1vh !important;
+                height: 0.8vh !important;
+                min-width: 0.8vh !important;
             }
 
             /* Main padding */
             main {
-                padding: 2vh 3vw !important;
+                padding: 1vh 2vw !important;
             }
 
             /* Gradient divider */
             header .h-px {
                 height: 2px !important;
-                margin: 2vh 0 !important;
+                margin: 1.5vh 0 !important;
             }
 
             /* Ticker text */
             .ticker-content {
-                font-size: clamp(1rem, 2vh, 2rem) !important;
+                font-size: clamp(0.9rem, 1.8vh, 1.8rem) !important;
             }
 
             /* Loading state */
@@ -249,6 +268,53 @@
 
             #errorState .material-symbols-outlined {
                 font-size: clamp(4rem, 8vh, 8rem) !important;
+            }
+        }
+
+        /* ============================================ */
+        /* GLOBAL FIX: Prevent time text wrapping       */
+        /* Applies in ALL orientations                  */
+        /* ============================================ */
+        .meeting-card .card-time,
+        .meeting-card .card-time-end {
+            white-space: nowrap !important;
+        }
+
+        /* Fix: flex-wrap on time row to prevent overflow on narrow cards */
+        .meeting-card .flex.items-baseline {
+            flex-wrap: wrap;
+            gap: 0.25rem 0.5rem;
+        }
+
+        /* ============================================ */
+        /* FALLBACK: For screens with portrait-like     */
+        /* aspect ratio (catches edge cases)            */
+        /* ============================================ */
+        @media (max-aspect-ratio: 3/4) {
+            #meetingContainer {
+                grid-template-columns: 1fr !important;
+                gap: 2vh !important;
+                padding: 1vh 3vw !important;
+                align-content: start !important;
+                max-height: calc(100vh - 28vh) !important;
+                overflow: hidden !important;
+            }
+
+            #meetingContainer.dual-col {
+                grid-template-columns: 1fr 1fr !important;
+            }
+
+            .meeting-card {
+                padding: 1.8vh 3vw !important;
+                min-height: 0 !important;
+            }
+
+            .meeting-card .card-agenda {
+                display: -webkit-box !important;
+                -webkit-line-clamp: 2 !important;
+                line-clamp: 2 !important;
+                -webkit-box-orient: vertical !important;
+                overflow: hidden !important;
             }
         }
     </style>

@@ -82,7 +82,7 @@ const CONFIG = {
     // Pengaturan Pagination (Auto-switch page)
     pagination: {
       enabled: true,
-      itemsPerPage: 2, // Tampilkan 2 meeting sekaligus (optimal untuk layar portrait 32" dilihat dari 7-10 meter)
+      itemsPerPage: 4, // Tampilkan max 4 meeting sekaligus (2x2 grid portrait TV 32")
       interval: 20000, // Ganti halaman setiap 20 detik (lebih lama agar sempat dibaca)
       animationDuration: 800 // Durasi animasi fade
     }
